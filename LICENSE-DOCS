@@ -1,0 +1,54 @@
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International
+(CC BY-NC-SA 4.0)
+
+Copyright (c) 2026 Won.Cafe
+
+Scope — this license covers the particular telling of W.O.N, and only
+these: README.md, SYSTEM.md, QUICKSTART.md, the Stories/, and the sample
+pillar files in What/, Own/, Need/.
+
+Not covered — the machine, licensed under MIT (see LICENSE): the .system/
+directory in full, including the agent souls
+(.system/agents/*.agent.md and .system/agents/House.md). There is no
+catch-all in this license: anything not named above is MIT. Prose living
+inside .system/ is MIT too — the souls are load-bearing input to the
+proxy, not commentary about it.
+
+You are free to:
+
+  Share — copy and redistribute the material in any medium or format
+  Adapt — remix, transform, and build upon the material
+
+Under the following terms:
+
+  Attribution — You must give appropriate credit to Won.Cafe, provide
+  a link to the license, and indicate if changes were made.
+
+  NonCommercial — You may not use the material for commercial purposes.
+
+  ShareAlike — If you remix, transform, or build upon the material, you
+  must distribute your contributions under the same license as the
+  original.
+
+No additional restrictions — You may not apply legal terms or
+technological measures that legally restrict others from doing anything
+the license permits.
+
+Full legal text: https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode
+
+---
+
+Note: the pillars you write inside your own copy of W.O.N — the content
+of your What/, Own/, Need/ — are yours alone. This license makes no
+claim on them.
+
+---
+
+The name. "W.O.N", its reading as *Won*, and the naming of the Six Gates
+and the eleven axes are the author's wordplay. Copyright does not govern
+names, so what follows is a request, not a term of this license: if you
+build your own Đạo on this structure — which the MIT license and the
+invitation at the end of README.md both welcome — give it your own name
+and your own wordplay.
+
+Take the frame. Leave the pun.
