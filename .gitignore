@@ -1,0 +1,88 @@
+# ── Whitelist — mặc định chắn hết, chỉ cho qua cái được gọi tên ──
+# Muốn đưa file hay thư mục mới vào repo: thêm một dòng `!` bên dưới.
+# Cuối tờ không có danh sách loại trừ: cái gì không được gọi tên thì không vào.
+/*
+
+# Tài liệu & giấy phép
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/SYSTEM.md
+!/QUICKSTART.md
+!/LICENSE
+!/LICENSE-DOCS
+
+# Thư mục gốc
+!/.system/
+!/Stories/
+!/What/
+!/Own/
+!/Need/
+
+# Ba tầng, không gộp được: git không bước vào một thư mục đã bị loại, nên `!` cho từng
+# file chỉ với tới sau khi thư mục đã mở rồi ruột mới bị chắn lại.
+
+!/.vscode/
+.vscode/*
+!.vscode/settings.json
+
+!.claude/
+.claude/*
+!.claude/agents/
+.claude/agents/*
+!.claude/agents/*.md
+
+!.github/
+.github/*
+!.github/FUNDING.yml
+
+# ── Bên trong những nhánh trên, vẫn chắn: ──
+
+.system/*
+!.system/agents/
+!.system/memory/
+!.system/proxy/
+
+# Soul các đệ
+.system/agents/**
+!.system/agents/*.md
+
+# Mã nguồn
+.system/proxy/**
+!.system/proxy/**/
+!.system/proxy/**/*.go
+!.system/proxy/go.mod
+!.system/proxy/won.conf.example
+!.system/proxy/services/cockpit/control.html
+
+# `won.conf` là cấu hình của riêng bạn — nguồn bạn chọn, địa chỉ bạn dùng — nên nó
+# không vào repo. Muốn version nó thì thêm `!.system/proxy/won.conf` ngay dưới đây.
+# `run/` là thư mục runtime: `state.json` và các thư mục phiên `*_s-*/`, bên trong
+# có lượt trò chuyện thật của bạn. Chắn trọn ruột, chỉ giữ khung thư mục.
+# Hai dòng dưới đứng sau khối trên, vì luật khớp sau cùng mới thắng.
+.system/proxy/run/**
+!.system/proxy/run/.gitkeep
+
+# Ký ức của các đệ — giữ khung thư mục, chắn nội dung
+.system/memory/**
+!.system/memory/**/
+!.system/memory/**/.gitkeep
+!.system/memory/**/template-*.md
+
+# Truyện
+Stories/**
+!Stories/**/
+!Stories/**/*.md
+
+# Trụ — mọi trang `.md` đều qua. Ký ức là bản ghi của đệ *về* bạn nên bị chắn ở trên;
+# trụ là chữ của chính bạn, version nó hay không là quyền của bạn.
+# Muốn dán ảnh hay đính thứ khác vào trụ: thêm một dòng `!` ngay dưới.
+What/**
+!What/**/
+!What/**/*.md
+Own/**
+!Own/**/
+!Own/**/*.md
+Need/**
+!Need/**/
+!Need/**/*.md

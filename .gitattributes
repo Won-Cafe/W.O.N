@@ -1,0 +1,3 @@
+# Chuẩn hoá dòng kết thúc — LF cho mã nguồn
+*.go text eol=lf
+go.mod text eol=lf
