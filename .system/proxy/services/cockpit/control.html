@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>W.O.N — Control API</title>
+<style>
+  :root {
+    --bg: #14161a; --panel: #1c1f26; --line: #2c313b; --ink: #e6e8ec;
+    --dim: #8b93a1; --ok: #4ec9a0; --warn: #e0a33e; --err: #e06c6c; --acc: #6aa9f0;
+    --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 24px; background: var(--bg); color: var(--ink);
+    font: 14px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header { max-width: 1100px; margin: 0 auto 20px; }
+  h1 { font-size: 19px; margin: 0 0 4px; font-weight: 600; }
+  h1 span { color: var(--dim); font-weight: 400; }
+  .sub { color: var(--dim); font-size: 13px; }
+  main { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 360px 1fr; gap: 16px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+  .panel + .panel { margin-top: 14px; }
+  .panel h2 {
+    font-size: 11px; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--dim); margin: 0 0 12px; font-weight: 600;
+  }
+  label { display: block; font-size: 12px; color: var(--dim); margin: 10px 0 4px; }
+  input, select {
+    width: 100%; padding: 7px 9px; background: #12141a; color: var(--ink);
+    border: 1px solid var(--line); border-radius: 5px; font: 13px var(--mono);
+  }
+  input:focus, select:focus { outline: none; border-color: var(--acc); }
+
+  button {
+    padding: 7px 13px; margin: 10px 6px 0 0; border-radius: 5px; cursor: pointer;
+    background: #262b34; color: var(--ink); border: 1px solid var(--line);
+    font: 13px/1 system-ui, sans-serif;
+  }
+  button:hover { background: #2f3540; border-color: #3d4552; }
+  button:active { transform: translateY(1px); }
+  button.go { background: #1d3a57; border-color: #2b5580; }
+  button.go:hover { background: #234668; }
+  button.danger { background: #3d2222; border-color: #5c3030; }
+  button.danger:hover { background: #4a2a2a; }
+  .row { display: flex; gap: 8px; align-items: flex-end; }
+  .row > div { flex: 1; }
+
+  /* Hộp hiển thị */
+  .out { display: flex; flex-direction: column; height: calc(100vh - 150px); min-height: 420px; }
+  .outbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .outbar h2 { margin: 0; flex: 1; }
+  pre {
+    flex: 1; margin: 0; overflow: auto; white-space: pre-wrap; word-break: break-word;
+    background: #101217; border: 1px solid var(--line); border-radius: 6px;
+    padding: 12px; font: 12.5px/1.6 var(--mono); color: #cfd4dd;
+  }
+  .tag {
+    display: inline-block; padding: 2px 7px; border-radius: 4px;
+    font: 600 11px var(--mono); letter-spacing: .04em;
+  }
+  .t-ok { background: #143a2e; color: var(--ok); }
+  .t-err { background: #3a1c1c; color: var(--err); }
+  .t-warn { background: #3a2f14; color: var(--warn); }
+  .hint { color: var(--dim); font-size: 12px; margin-top: 10px; }
+  code { font: 12px var(--mono); background: #12141a; padding: 1px 5px; border-radius: 3px; color: #b9c2d0; }
+  .plugins { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .plugins button { margin: 0; font-size: 12px; padding: 5px 10px; }
+  .on { border-color: #2f6b52; }
+  .off { opacity: .55; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>W.O.N Proxy Inject <span>— Control API</span></h1>
+  <div class="sub">Buồng lái local. Bốn route, không auth (control không cầm bí mật nào). Mở file này thẳng bằng browser.</div>
+</header>
+
+<main>
+  <div>
+    <div class="panel">
+      <h2>Địa chỉ</h2>
+      <label for="base">Control base URL</label>
+      <input id="base" value="http://127.0.0.1:7777" spellcheck="false">
+      <div class="hint">Mặc định <code>127.0.0.1:7777</code>. Đổi ở <code>won.conf</code> khoá <code>control</code>, hoặc cờ <code>-control</code>.</div>
+    </div>
+
+    <div class="panel">
+      <h2>GET /status</h2>
+      <button class="go" onclick="getStatus()">Lấy trạng thái</button>
+      <button onclick="startPoll()">Tự lấy mỗi 3s</button>
+      <button onclick="stopPoll()">Dừng</button>
+      <div class="hint">Trả uptime · upstream (default/override) · plugin đang bật · các phiên.</div>
+    </div>
+
+    <div class="panel">
+      <h2>PUT / DELETE /upstream</h2>
+      <label for="uppick">chọn sẵn</label>
+      <select id="uppick" onchange="document.getElementById('up').value = this.value">
+        <option value="https://api.anthropic.com">https://api.anthropic.com</option>
+        <option value="http://localhost:11434">http://localhost:11434 — Ollama trên máy</option>
+        <option value="http://127.0.0.1:11434">http://127.0.0.1:11434 — Ollama (IP)</option>
+      </select>
+      <label for="up">url</label>
+      <input id="up" value="https://api.anthropic.com" spellcheck="false">
+      <div class="row">
+        <button class="go" onclick="putUpstream()">Đặt override</button>
+        <button class="danger" onclick="delUpstream()">Xoá override</button>
+      </div>
+      <div class="hint">Override chỉ tới được đích đã khai hoặc chính máy này, ngoài ra trả 400 — chiếm được control cũng không thành open-proxy.</div>
+    </div>
+
+    <div class="panel">
+      <h2>PUT /plugins/{name}</h2>
+      <label for="pname">name</label>
+      <div class="row">
+        <div><select id="pname"></select></div>
+      </div>
+      <div class="row">
+        <button class="go" onclick="putPlugin(true)">enabled: true</button>
+        <button class="danger" onclick="putPlugin(false)">enabled: false</button>
+      </div>
+      <div class="hint">Danh sách là mọi plugin có trong binary. Cái won.conf chưa bật thì chưa dựng, vặn vào sẽ trả 404 kèm cách sửa. Bật/tắt đổi tiền tố cache — lượt kế trả một lần phí ghi.</div>
+      <div id="plugbtns" class="plugins"></div>
+    </div>
+
+    <div class="panel">
+      <h2>GET / PUT /config — ghi won.conf</h2>
+      <button class="go" onclick="getConfig()">Đọc won.conf</button>
+      <div id="cfgpath" class="hint"></div>
+
+      <div id="cfgform"></div>
+
+      <div class="row">
+        <button class="go" onclick="saveConfig()">Lưu vào won.conf</button>
+        <button onclick="getConfig()">Bỏ sửa, đọc lại</button>
+      </div>
+      <div class="hint">
+        Chỉ ghi <b>file</b>, không đổi tiến trình đang chạy — hai sự thật một lúc thì lần
+        chạy sau không ai biết bản nào thắng. Sửa xong phải chạy lại proxy, trừ
+        <code>upstream</code> và bật/tắt plugin (vặn nóng ở route riêng).
+      </div>
+      <div id="cfglocked" class="hint"></div>
+    </div>
+  </div>
+
+  <div class="panel out">
+    <div class="outbar">
+      <h2>Kết quả</h2>
+      <span id="stat"></span>
+      <button onclick="clearOut()">Xoá</button>
+    </div>
+    <pre id="out">Chưa gọi gì. Bấm một nút bên trái.</pre>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+var pollTimer = null;
+
+function base() {
+  return document.getElementById('base').value.replace(/\/+$/, '');
+}
+
+function setStat(code, text, cls) {
+  var el = document.getElementById('stat');
+  el.innerHTML = '';
+  var s = document.createElement('span');
+  s.className = 'tag ' + cls;
+  s.textContent = code + (text ? ' ' + text : '');
+  el.appendChild(s);
+}
+
+function show(title, payload) {
+  var out = document.getElementById('out');
+  var stamp = new Date().toLocaleTimeString();
+  var body = typeof payload === 'string' ? payload : JSON.stringify(payload, null, 2);
+  out.textContent = '# ' + stamp + '  ' + title + '\n\n' + body;
+}
+
+function clearOut() {
+  document.getElementById('out').textContent = 'Đã xoá.';
+  document.getElementById('stat').innerHTML = '';
+}
+
+// wonControl — giá trị buồng lái tự khai trong `X-WON-Control`: MẶT nào, rồi MỤC nào. Mặt
+// đứng trước vì mai này còn giao diện khác vặn cùng những núm này.
+function wonControl(muc) { return 'cockpit/' + muc; }
+
+// nhan — dòng tiêu đề của kết quả. Có khai thì in ra luôn, để cái vừa gửi đi nhìn thấy được
+// ở đây chứ không phải chỉ ở nhật ký phía proxy.
+function nhan(method, path, muc) {
+  return method + ' ' + path + (muc ? '   [X-WON-Control: ' + wonControl(muc) + ']' : '');
+}
+
+// call — một chỗ duy nhất gọi mạng, nên xử lỗi cũng chỉ một chỗ. Control không bao
+// giờ trả HTML, nên body không phải JSON là dấu hiệu gọi sai cửa.
+//
+// `muc` là lời khai: mục nào vừa bấm. Control chép nó vào dòng nhật ký của lần vặn núm —
+// control không có auth, nên đó là câu duy nhất còn trả lời được "ai vừa làm". Không khai
+// thì mọi núm vẫn vặn được y nguyên; nó là vết, không phải chìa.
+function call(method, path, body, muc) {
+  var url = base() + path;
+  var opts = { method: method, headers: {} };
+  if (muc) opts.headers['X-WON-Control'] = wonControl(muc);
+  if (body !== null && body !== undefined) {
+    opts.headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  var code = 0;
+  fetch(url, opts)
+    .then(function (r) {
+      code = r.status;
+      return r.text();
+    })
+    .then(function (txt) {
+      var parsed, pretty;
+      try {
+        parsed = JSON.parse(txt);
+        pretty = JSON.stringify(parsed, null, 2);
+      } catch (e) {
+        parsed = null;
+        pretty = txt || '(body rỗng)';
+      }
+      setStat(code, code < 300 ? 'OK' : 'lỗi', code < 300 ? 't-ok' : 't-err');
+      show(nhan(method, path, muc), pretty);
+      if (parsed && path === '/status') renderPlugins(parsed);
+    })
+    .catch(function (err) {
+      setStat('—', 'không nối được', 't-warn');
+      show(nhan(method, path, muc),
+        'Không gọi được ' + url + '\n\n' + err +
+        '\n\nKiểm:\n' +
+        '  · proxy đang chạy? (go run . trong .system/proxy)\n' +
+        '  · control có bật? won.conf khoá `control` không phải "off"\n' +
+        '  · đúng port? mặc định 7777');
+    });
+}
+
+function getStatus() { call('GET', '/status', null, 'status'); }
+
+function putUpstream() {
+  var url = document.getElementById('up').value.trim();
+  call('PUT', '/upstream', { url: url }, 'upstream');
+}
+
+function delUpstream() { call('DELETE', '/upstream', null, 'upstream'); }
+
+function putPlugin(on) {
+  var name = document.getElementById('pname').value.trim();
+  if (!name) { show('PUT /plugins/', 'Chưa đọc được danh sách plugin — bấm "Trạng thái" trước.'); return; }
+  call('PUT', '/plugins/' + encodeURIComponent(name), { enabled: on }, 'plugin');
+}
+
+// renderPluginPicker dựng ô chọn từ `available`, và đánh dấu cái CHƯA DỰNG ngay trên
+// nhãn: hai tập ấy khác nhau, và người vặn phải thấy sự khác nhau đó trước khi bấm.
+// Giữ nguyên lựa chọn cũ nếu nó còn trong danh sách, để mỗi lần đọc trạng thái không
+// kéo ô chọn về mục đầu dưới tay người đang thao tác.
+function renderPluginPicker(status) {
+  var sel = document.getElementById('pname');
+  var names = (status && status.available) || [];
+  if (!names.length) { return; }
+  var built = {};
+  ((status && status.plugins) || []).forEach(function (p) { built[p.name] = true; });
+
+  var keep = sel.value;
+  sel.innerHTML = '';
+  names.forEach(function (n) {
+    var op = document.createElement('option');
+    op.value = n;
+    op.textContent = built[n] ? n : n + ' (chưa dựng)';
+    sel.appendChild(op);
+  });
+  if (names.indexOf(keep) >= 0) sel.value = keep;
+}
+
+// renderPlugins — /status đã nói plugin nào có trong binary và cái nào đang bật, nên
+// dựng cả ô chọn lẫn nút thật từ đó. Trang không giữ danh sách plugin nào của riêng nó:
+// thêm một plugin vào `plugins/` là ô chọn có nó, không phải sửa file này.
+function renderPlugins(status) {
+  renderPluginPicker(status);
+  var box = document.getElementById('plugbtns');
+  box.innerHTML = '';
+  var list = (status && status.plugins) || [];
+  if (!list.length) { box.textContent = ''; return; }
+  list.forEach(function (p) {
+    var b = document.createElement('button');
+    b.className = p.enabled ? 'on' : 'off';
+    b.textContent = (p.enabled ? '● ' : '○ ') + p.name;
+    b.title = 'bấm để ' + (p.enabled ? 'tắt' : 'bật');
+    b.onclick = function () {
+      document.getElementById('pname').value = p.name;
+      call('PUT', '/plugins/' + encodeURIComponent(p.name), { enabled: !p.enabled }, 'plugin');
+    };
+    box.appendChild(b);
+  });
+}
+
+// PICKS — núm nào có tập giá trị hữu hạn thì cho chọn, không cho gõ: gõ tay là chỗ sinh
+// giá trị sai mà chỉ lần khởi động sau mới báo.
+var PICKS = {
+  log_level: ['debug', 'info', 'silent'],
+  think: ['true', 'false'],
+  default_agent: ['Tzu', 'Sun', 'Mo', 'Fan', 'Han', 'Shu', 'off'],
+  keep_alive: ['5m', '30m', '1h', '-1'],
+  total_budget_ms: ['10000', '15000', '30000', '60000'],
+  timeout_ms: ['5000', '10000', '15000', '30000'],
+  max_tokens: ['150', '250', '400', '800'],
+  temperature: ['0.2', '0.4', '0.6', 'off'],
+};
+
+// ORDER — thứ tự đọc của ô nhập, gom theo nhóm như won.conf. Núm không có trong danh
+// sách vẫn hiện, ở cuối: /config là nguồn, trang này không phải chép lại nó.
+var ORDER = ['upstream', 'log_level', 'default_agent', 'total_budget_ms',
+  'model', 'base_url', 'timeout_ms', 'max_tokens', 'think', 'temperature', 'keep_alive',
+  'ground', 'strip_tags', 'unwrap_tags', 'strip_sections', 'strip_prefixes'];
+
+var cfgKeys = [];
+
+function asText(v) {
+  if (v === null || v === undefined) return '';
+  if (Array.isArray(v)) return v.join(', ');
+  return String(v);
+}
+
+// renderConfigForm dựng ô nhập TỪ /config, kể cả bảng khoá bị chặn — nên trang không giữ
+// bản sao nào của danh sách núm hay danh sách khoá cấm.
+function renderConfigForm(cfg) {
+  var box = document.getElementById('cfgform');
+  box.innerHTML = '';
+  cfgKeys = [];
+  document.getElementById('cfgpath').textContent = cfg.path || '';
+
+  var keys = ORDER.filter(function (k) { return k in cfg.values; });
+  Object.keys(cfg.values).sort().forEach(function (k) {
+    if (keys.indexOf(k) < 0) keys.push(k);
+  });
+
+  keys.forEach(function (k) {
+    if (cfg.locked && k in cfg.locked) return;
+    cfgKeys.push(k);
+    var lab = document.createElement('label');
+    lab.textContent = k;
+    box.appendChild(lab);
+
+    var val = asText(cfg.values[k]);
+    if (PICKS[k]) {
+      var sel = document.createElement('select');
+      sel.id = 'cfg_' + k;
+      var opts = PICKS[k].slice();
+      if (val !== '' && opts.indexOf(val) < 0) opts.unshift(val);
+      opts.forEach(function (o) {
+        var op = document.createElement('option');
+        op.value = o;
+        op.textContent = o;
+        if (o === val) op.selected = true;
+        sel.appendChild(op);
+      });
+      box.appendChild(sel);
+    } else {
+      var inp = document.createElement('input');
+      inp.id = 'cfg_' + k;
+      inp.value = val;
+      inp.spellcheck = false;
+      box.appendChild(inp);
+    }
+  });
+
+  var lk = document.getElementById('cfglocked');
+  lk.innerHTML = '';
+  if (cfg.locked) {
+    var names = Object.keys(cfg.locked);
+    if (names.length) {
+      lk.innerHTML = '<b>Không ghi được qua API:</b><br>' + names.map(function (n) {
+        return '<code>' + n + '</code> — ' + cfg.locked[n];
+      }).join('<br>');
+    }
+  }
+}
+
+function getConfig() {
+  var url = base() + '/config';
+  fetch(url, { headers: { 'X-WON-Control': wonControl('config') } })
+    .then(function (r) { return r.text().then(function (t) { return [r.status, t]; }); })
+    .then(function (pair) {
+      var code = pair[0], txt = pair[1];
+      setStat(code, code < 300 ? 'OK' : 'lỗi', code < 300 ? 't-ok' : 't-err');
+      var cfg = null;
+      try { cfg = JSON.parse(txt); } catch (e) { }
+      show(nhan('GET', '/config', 'config'), cfg ? JSON.stringify(cfg, null, 2) : txt);
+      if (cfg && cfg.values) renderConfigForm(cfg);
+    })
+    .catch(function (err) {
+      setStat('—', 'không nối được', 't-warn');
+      show(nhan('GET', '/config', 'config'), 'Không gọi được ' + url + '\n\n' + err);
+    });
+}
+
+// saveConfig chỉ gửi núm ĐÃ ĐỌC ĐƯỢC ở lần GET gần nhất. Không đọc trước thì không có
+// gì để so, và gửi cả một form trống là cách xoá sạch won.conf.
+function saveConfig() {
+  if (!cfgKeys.length) {
+    show('PUT /config', 'Bấm "Đọc won.conf" trước — chưa có núm nào để lưu.');
+    return;
+  }
+  var body = {};
+  cfgKeys.forEach(function (k) {
+    var el = document.getElementById('cfg_' + k);
+    if (el) body[k] = el.value.trim();
+  });
+  call('PUT', '/config', body, 'config');
+}
+
+function startPoll() {
+  stopPoll();
+  getStatus();
+  pollTimer = setInterval(getStatus, 3000);
+}
+
+function stopPoll() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+getStatus();
+</script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+# | Copy file này thành `won.conf` cùng thư mục. Dòng có `#` là mẫu đang tắt: bỏ `#` là bật.
+# | Mọi dòng đang bật = mặc định của proxy. Sửa xong phải chạy lại proxy. Hướng dẫn: ../../QUICKSTART.md
+# |
+# | Copy this file to `won.conf` in the same folder. A `#` line is a disabled sample: remove `#` to enable.
+# | Every active line equals the proxy default. Restart the proxy after editing. Guide: ../../QUICKSTART.md
+
+
+# ══ UPSTREAM — WHERE REQUESTS GO ══════════════════════════════════════════════
+# | Chỉ MỘT dòng có hiệu lực. Không bật dòng nào = dùng model trên máy bạn, request không rời máy.
+# | Xếp từ riêng tư cao xuống thấp. Tên model không khai ở đây, công cụ AI tự gửi.
+# |
+# | Only ONE line takes effect. None enabled = the model on your machine, and requests never leave it.
+# | Ordered from more private to less. Model names are not set here; your AI tool sends them.
+
+# | Ollama trên máy này
+# | Ollama on this machine
+# upstream = http://127.0.0.1:11434
+
+# | OpenRouter: một khoá cho nhiều model
+# | OpenRouter: one key for many models
+# upstream = https://openrouter.ai/api
+
+# | Claude Code, hoặc công cụ gọi endpoint Anthropic
+# | Claude Code, or any tool calling the Anthropic endpoint
+# upstream = https://api.anthropic.com
+
+# | Codex CLI, hoặc công cụ gọi endpoint OpenAI
+# | Codex CLI, or any tool calling the OpenAI endpoint
+# upstream = https://api.openai.com
+
+# | Gemini CLI, hoặc công cụ gọi endpoint Gemini
+# | Gemini CLI, or any tool calling the Gemini endpoint
+# upstream = https://generativelanguage.googleapis.com
+
+
+# ══ PROXY AND CONTEXT ═════════════════════════════════════════════════════════
+
+# | Địa chỉ proxy lắng nghe, cũng là base URL công cụ AI trỏ vào.
+# | Address the proxy listens on, and the base URL AI tools point at.
+listen = 127.0.0.1:8787
+
+# | Agent dùng khi request không nói đang gọi ai. `off` = không chèn phần agent.
+# | Agent used when a request names no agent. `off` = skip the agent section.
+default_agent = Tzu
+
+# | File đọc một lần lúc khởi động, theo thứ tự khai. `off` = không chèn.
+# | Files read once at startup, in order. `off` = skip.
+ground = ./README.md, What/**/*.md, Own/**/*.md, Need/**/*.md
+
+# | Địa chỉ trang xem trạng thái và sửa cấu hình lúc đang chạy. `off` = tắt trang này.
+# | Address of the page for inspecting state and editing config at runtime. `off` = no such page.
+control = 127.0.0.1:7777
+
+
+# ══ FILTERING THE AI TOOL'S PROMPT ════════════════════════════════════════════
+# | Công cụ AI bọc câu của người dùng trong thẻ riêng của nó. Thẻ khai ở đây, không nằm trong code.
+# | AI tools wrap the user's text in their own tags. Tags are declared here, not in code.
+
+# | Xoá cả cặp thẻ lẫn nội dung bên trong.
+# | Remove the tag pair and everything inside it.
+strip_tags = system-reminder, instructions, modeInstructions, workspace_info
+
+# | Xoá cặp thẻ, giữ lại nội dung bên trong.
+# | Remove the tag pair, keep the content inside.
+unwrap_tags = userRequest
+
+# | Xoá đoạn bắt đầu bằng chuỗi này, tức câu công cụ AI tự khai nó là ai.
+# | Remove text starting with this string, i.e. the AI tool stating who it is.
+strip_identity = You are
+
+# | Xoá mục có tiêu đề này khỏi hướng dẫn của công cụ AI, kèm mục con. Đừng xoá mục dạy dùng tool.
+# | Remove sections with these headings, subsections included. Do not remove the tool-usage sections.
+strip_sections = Tone and style, Text output, auto memory
+
+
+# ══ TIME AND LOGS ═════════════════════════════════════════════════════════════
+
+# | Thời gian tối đa cho cả phần proxy chèn thêm vào một request.
+# | Time limit for everything the proxy adds to one request.
+total_budget_ms = 60000
+
+# | Proxy in gì ra cửa sổ terminal — chỉ là chữ chạy qua màn hình, không lưu gì xuống máy.
+# | info = mỗi request một dòng · silent = không in gì · debug = in thêm từng bước bên trong.
+# |
+# | What the proxy prints in your terminal window — text on screen only, nothing saved.
+# | info = one line per request · silent = nothing · debug = every step inside as well.
+log_level = info
+
+# | Bật dòng này thì proxy lưu nội dung từng request vào thư mục `run/` trên máy bạn, để
+# | lúc trục trặc còn cái mà xem lại. Nhớ: file đó chứa đúng những gì bạn đã gõ.
+# | Để nguyên (không bỏ `#`) = chỉ lưu khi `log_level = debug`.
+# |
+# | Turn this on and the proxy saves each request into the `run/` folder on your machine,
+# | so there is something to look at when things go wrong. Remember: those files contain
+# | exactly what you typed. Left as is = it only saves when `log_level = debug`.
+debug_log = false
+
+
+# ══ LOCAL MODEL ═══════════════════════════════════════════════════════════════
+# | Model nhỏ chạy trên máy này, cho các plugin cần model. Khác model ở mục UPSTREAM.
+# | Không có nó thì các plugin đó im, phần còn lại của proxy không đổi.
+# |
+# | A small model on this machine, for plugins that need one. Not the UPSTREAM model.
+# | Without it those plugins stay quiet; the rest of the proxy is unaffected.
+
+# | Tên model, theo đúng tên Ollama. Để trống = không gọi model nào.
+# | Model name, as Ollama names it. Empty = no model calls at all.
+model = qwen3.5:4b
+
+# | Địa chỉ Ollama.
+# | Ollama address.
+base_url = http://127.0.0.1:11434
+
+# | Thời gian tối đa cho MỘT lần gọi model.
+# | Time limit for ONE model call.
+timeout_ms = 15000
+
+# | Số token tối đa model được sinh ra trong một lần gọi.
+# | Maximum tokens the model may generate in one call.
+max_tokens = 160
+
+# | `false` tắt phần model tự nghĩ trước khi trả lời. Bật thì lời đáp có thể về rỗng.
+# | `false` turns off the model's thinking step. Left on, replies can come back empty.
+think = false
+
+# | Độ sáng tạo: thấp = an toàn, hay lặp; cao = đa dạng hơn nhưng dễ lệch khuôn. `off` = bỏ núm này.
+# | How creative: low = safe and repetitive; high = more variety but looser shape. `off` = skip it.
+temperature = 0.4
+
+# | Giữ model trong RAM sau lần gọi để lần sau khỏi nạp lại.
+# | Keep the model in RAM after a call so the next one skips loading.
+keep_alive = 30m
+
+
+# ══ PLUGINS ═══════════════════════════════════════════════════════════════════
+# | Mỗi plugin thêm một phần vào request. Thứ tự khai ở đây là thứ tự các phần.
+# | `enable = false` tắt một plugin. `budget_ms` là trần thời gian của riêng nó; `0` = bỏ trần.
+# |
+# | Each plugin adds a section to the request. The order here is the order of sections.
+# | `enable = false` turns a plugin off. `budget_ms` is its own time limit; `0` removes it.
+
+# | Thêm phần agent: request này gọi agent nào, và mô tả của agent đó.
+# | Adds the agent section: which agent this request calls, and that agent's description.
+identity.enable = true
+
+# | Đọc kho ký ức, mở trang liên quan và thêm vào request. Cần LOCAL MODEL.
+# | Reads the memory store, opens relevant pages and adds them. Needs LOCAL MODEL.
+memory.enable = true
+memory.budget_ms = 20000
+
+# | Điểm cộng khi một trang được xác nhận, điểm trừ khi bị phản đối.
+# | Points added when a page is confirmed, subtracted when it is contested.
+memory.stone_weight = 10
+
+# | Agent duy nhất được chấm điểm trang ký ức.
+# | The only agent allowed to score memory pages.
+memory.scorer = Shu
+
+# | Số trang tối đa mở thêm trong MỘT lượt người.
+# | Maximum pages opened in ONE human turn.
+memory.max_open_per_turn = 2
+
+# | Trần số dòng index cho MỖI vùng ký ức.
+# | Ceiling on index lines for EACH memory zone.
+memory.max_index_per_zone = 20
+
+# | Thêm một nhận xét ngoài lề. Cần LOCAL MODEL.
+# | Adds a side remark. Needs LOCAL MODEL.
+loiterer.enable = true
+loiterer.budget_ms = 20000
+
+# | Tên gán xoay vòng cho nhận xét ngoài lề. `off` = không gán tên.
+# | Names assigned in rotation to the side remark. `off` = no name.
+loiterer.faces = anh xe ôm, cô bán nước, chú bảo vệ
+
+# | Gợi ý tool phù hợp hơn cho việc đang làm. Cần LOCAL MODEL.
+# | Suggests a tool better suited to the current task. Needs LOCAL MODEL.
+outfitter.enable = true
+outfitter.budget_ms = 20000
+
+# | Số lượt của người dùng tối thiểu trước khi có gợi ý.
+# | Minimum user turns before a suggestion appears.
+outfitter.min_turns = 3
+
+# | Nhắc thời lượng phiên và khối lượng việc đã làm. Cần LOCAL MODEL.
+# | Notes how long the session has run and how much work it covered. Needs LOCAL MODEL.
+wayfarer.enable = true
+wayfarer.budget_ms = 20000
