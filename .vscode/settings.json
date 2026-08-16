@@ -1,0 +1,36 @@
+{
+  "chat.useHooks": false,
+  "chat.useAgentSkills": false,
+  "chat.useAgentsMdFile": false,
+  "chat.useClaudeMdFile": false,
+  "chat.agentFilesLocations": {
+    ".system/agents": true,
+    ".github/agents": false,
+    ".claude/agents": false
+  },
+  "chat.hookFilesLocations": {
+    ".github/hooks": false,
+    ".claude/settings.json": false,
+    ".claude/settings.local.json": false,
+    "~/.copilot/hooks": false,
+    "~/.claude/settings.json": false
+  },
+  "chat.agentSkillsLocations": {
+    ".agents/skills": false,
+    ".github/skills": false,
+    ".claude/skills": false,
+    "~/.agents/skills": false,
+    "~/.copilot/skills": false,
+    "~/.claude/skills": false
+  },
+  "chat.instructionsFilesLocations": {
+    ".claude/rules": false,
+    "~/.claude/rules": false,
+    ".github/instructions": false,
+    "~/.copilot/instructions": false
+  },
+  "chat.promptFilesLocations": {
+    ".github/prompts": false
+  },
+  "github.copilot.chat.commitMessageGeneration.instructions": []
+}
