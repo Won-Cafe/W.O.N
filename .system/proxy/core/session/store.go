@@ -8,6 +8,7 @@ import (
 	"hash/fnv"
 	"log/slog"
 	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -374,8 +375,17 @@ func (st *Store) Flush() {
 		return
 	}
 	if err := os.WriteFile(st.path, b, 0o644); err != nil {
-		slog.Error("session: write error", "path", st.path, "err", err)
-		return
+		// Thư mục cha có thể chưa có (lần chạy đầu, .system/proxy/run chưa tạo).
+		// os.WriteFile không tự tạo thư mục cha, nên tạo rồi thử lại một lần.
+		if mkErr := os.MkdirAll(filepath.Dir(st.path), 0o755); mkErr != nil {
+			slog.Error("session: write error", "path", st.path, "err", err)
+			slog.Error("session: mkdir error", "dir", filepath.Dir(st.path), "err", mkErr)
+			return
+		}
+		if err = os.WriteFile(st.path, b, 0o644); err != nil {
+			slog.Error("session: write error", "path", st.path, "err", err)
+			return
+		}
 	}
 	st.dirty = false
 }

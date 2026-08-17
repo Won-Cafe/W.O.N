@@ -360,6 +360,26 @@ func TestFlushPersistsAndFailsOpen(t *testing.T) {
 	}
 }
 
+// Flush phải tự tạo thư mục cha khi chưa có: lần chạy đầu, .system/proxy/run
+// chưa tồn tại thì os.WriteFile lỗi nếu không tạo trước. Test khoá regression này.
+func TestFlushCreatesMissingParentDir(t *testing.T) {
+	// Thư mục cha chưa tồn tại — t.TempDir() tạo gốc nhưng không tạo con.
+	dir := filepath.Join(t.TempDir(), "nested", "run")
+	path := filepath.Join(dir, "state.json")
+
+	st := NewStore(path)
+	st.Touch("k", "", "tzu", Reach{}, 1, time.Now())
+	st.Flush()
+
+	b, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("Flush did not create parent dir and write state: %v", err)
+	}
+	if !strings.Contains(string(b), "tzu") {
+		t.Fatalf("state file missing expected content, got %s", b)
+	}
+}
+
 // Quãng vắng đo theo dấu thời gian của ĐỆ đang mở phiên, không phải global:
 // khoảng cách giữa hai đệ khác nhau là một con số vô nghĩa. Wayfarer cắm mốc
 // "quay lại sau vắng dài" từ con số này, nên nó phải là quãng vắng của đúng đệ đó.
