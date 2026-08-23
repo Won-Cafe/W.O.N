@@ -70,11 +70,11 @@ func TestReachedShowsRunsAndTargets(t *testing.T) {
 	p.Paths = paths.Tree{Root: root}
 	snap := &request.Snapshot{
 		Reached: []request.ToolCall{
-			{Name: "Grep", Target: "Stories"},
-			{Name: "Read", Target: "Stories/Adventure.md"},
-			{Name: "Read", Target: "Stories/Adventure.md"},
-			{Name: "Read", Target: "Stories/Adventure.md"},
-			{Name: "Write", Target: filepath.Join(root, ".system", "memory", "working", "a.md")},
+			{Name: "Grep", Target: "Stories", Kind: request.TargetPath},
+			{Name: "Read", Target: "Stories/Adventure.md", Kind: request.TargetPath},
+			{Name: "Read", Target: "Stories/Adventure.md", Kind: request.TargetPath},
+			{Name: "Read", Target: "Stories/Adventure.md", Kind: request.TargetPath},
+			{Name: "Write", Target: filepath.Join(root, ".system", "memory", "working", "a.md"), Kind: request.TargetPath},
 		},
 		HumanSpokeLast: true,
 	}
@@ -94,8 +94,8 @@ func TestReachedShowsRunsAndTargets(t *testing.T) {
 func TestReachedDoesNotMergeDifferentTargets(t *testing.T) {
 	p := &Outfitter{}
 	got := p.reached(&request.Snapshot{Reached: []request.ToolCall{
-		{Name: "Edit", Target: "a.md"},
-		{Name: "Edit", Target: "b.md"},
+		{Name: "Edit", Target: "a.md", Kind: request.TargetPath},
+		{Name: "Edit", Target: "b.md", Kind: request.TargetPath},
 	}}, sessionWith(t, 1, 4))
 	if strings.Contains(got, "×2") {
 		t.Errorf("hai đích khác nhau bị gộp:\n%s", got)
@@ -150,8 +150,8 @@ func TestLegendMatchesReachedShape(t *testing.T) {
 	p := &Outfitter{}
 	p.Paths = paths.Tree{Root: t.TempDir()}
 	line := p.reached(&request.Snapshot{Reached: []request.ToolCall{
-		{Name: "Edit", Target: "Own/a.md"},
-		{Name: "Edit", Target: "Own/a.md"},
+		{Name: "Edit", Target: "Own/a.md", Kind: request.TargetPath},
+		{Name: "Edit", Target: "Own/a.md", Kind: request.TargetPath},
 	}}, sessionWith(t, 1, 5))
 	if !strings.Contains(line, "- Edit ×2 → Own/a.md  ["+paths.RegionAxis+"]") {
 		t.Errorf("dòng thật không khớp hình dạng bản kê hứa:\n%s", line)
@@ -172,15 +172,69 @@ func sessionWith(t *testing.T, turns, runs int) *session.Session {
 	return s
 }
 
-// Ngưỡng min_turns đọc lượt NGƯỜI, không đọc lần chạy. Đo trên một phiên thật: một
-// tin nhắn của người đẩy số lần chạy lên 6, nên nếu ngưỡng đọc lần chạy thì nó chạm
-// ngay trong lượt người đầu tiên — trái hẳn "nhìn vài lượt rồi mới phán".
-func TestMinTurnsCountsHumanTurnsNotRuns(t *testing.T) {
-	p := &Outfitter{minTurns: 3}
-	if s := sessionWith(t, 1, 6); s.Turns() >= p.minTurns {
-		t.Errorf("6 lần chạy trong 1 lượt người không được chạm ngưỡng: turns=%d", s.Turns())
+// Một câu lệnh KHÔNG phải một chỗ, nên nó không được mang tên vùng. Đo trên dấu thật:
+// trong 232 dòng <Reached> đã gửi đi, 35 dòng mang nhãn rác kiểu `cd C:/` hay
+// `curl -sL "https:/` — Region nhận cả câu lệnh PowerShell rồi cắt tiền tố của nó ra làm
+// tên vùng. Model nhỏ học đúng cái hình ấy rồi tự đúc nhãn cho đích nó chưa hề thấy.
+func TestReachedLabelsNonPlaceTargetsByKind(t *testing.T) {
+	p := &Outfitter{}
+	p.Paths = paths.Tree{Root: t.TempDir()}
+	got := p.reached(&request.Snapshot{Reached: []request.ToolCall{
+		{Name: "run_in_terminal", Target: `cd C:\won\.system\proxy; go vet ./...`, Kind: request.TargetCommand},
+		{Name: "fetch", Target: "https://example.com/a.md", Kind: request.TargetURL},
+		{Name: "grep_search", Target: "**/*.go", Kind: request.TargetPattern},
+		{Name: "read_file", Target: "Own/a.md", Kind: request.TargetPath},
+	}}, sessionWith(t, 3, 4))
+
+	for _, want := range []string{
+		"[" + request.TargetCommand.Label() + "]",
+		"[" + request.TargetURL.Label() + "]",
+		"[" + request.TargetPattern.Label() + "]",
+		"[" + paths.RegionAxis + "]",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("thiếu nhãn %q trong:\n%s", want, got)
+		}
 	}
-	if s := sessionWith(t, 3, 12); s.Turns() < p.minTurns {
-		t.Errorf("3 lượt người phải chạm ngưỡng: turns=%d", s.Turns())
+	// Cái KHÔNG được có: một mảnh câu lệnh đứng ở chỗ tên vùng.
+	if strings.Contains(got, "[cd C:") {
+		t.Errorf("câu lệnh vẫn bị đọc thành vùng:\n%s", got)
+	}
+}
+
+// Bản kê phải khai đủ MỌI nhãn loại, dựng từ hằng số của request — thêm một loại thì bản
+// kê tự đúng, không phải nhớ sửa hai chỗ.
+func TestLegendNamesEveryTargetKind(t *testing.T) {
+	got := legend()
+	for _, k := range request.LabeledKinds() {
+		if !strings.Contains(got, k.Label()) {
+			t.Errorf("bản kê thiếu nhãn loại %q:\n%s", k.Label(), got)
+		}
+	}
+}
+
+// Một thước cho mọi nhịp: ngưỡng đọc LẦN CHẠY. Vật liệu của kẻ giữ kho là `<Kit>` và
+// `<Reached>`, và cả hai lớn theo lần chạy — số câu người nói không nói gì về việc đã có
+// nếp tay nào để đọc hay chưa.
+//
+// Vì sao bỏ min_turns: đo trên nhật ký thật, ở lượt người thứ 3 runs tích luỹ có phiên
+// chỉ 0, tức ngưỡng-đọc-lượt-người cho phép hỏi model về đồ nghề khi chưa món nào được
+// dùng. Ngược lại nó KHÔNG BAO GIỜ chạm với một lượt được giao — đệ ấy sống trọn đời
+// trong một lượt người, và 5 đệ ngoài Tzu chưa phiên nào vượt 1 lượt (Shu 31 phiên, Sun
+// 13, Mo 10, Han 3, Fan 2). Một thước lệch cả hai đầu thì không phải thước.
+func TestThresholdCountsRunsNotHumanTurns(t *testing.T) {
+	p := &Outfitter{minRuns: 6}
+
+	// Lượt được giao: một lượt người, nhưng đã 6 lần chạy — có nếp tay, được nói.
+	if s := sessionWith(t, 1, 6); s.Runs() < p.minRuns {
+		t.Errorf("6 lần chạy phải chạm ngưỡng dù chỉ 1 lượt người: runs=%d", s.Runs())
+	}
+	// Ba lượt người mà mới 2 lần chạy: chưa có gì để đọc, vẫn phải im.
+	if s := sessionWith(t, 3, 2); s.Runs() >= p.minRuns {
+		t.Errorf("2 lần chạy chưa chạm ngưỡng dù đã 3 lượt người: runs=%d", s.Runs())
+	}
+	// Một cái liếc vẫn là một cái liếc.
+	if s := sessionWith(t, 1, 1); s.Runs() >= p.minRuns {
+		t.Errorf("1 lần chạy không được chạm ngưỡng: runs=%d", s.Runs())
 	}
 }

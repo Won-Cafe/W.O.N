@@ -351,7 +351,7 @@ Ba kẻ này không thuộc Circle. Họ đứng ở tầng dưới, chỗ mọi
 
 **Kẻ tạt ngang** đứng ngoài cuộc mà nhìn, đôi lúc làm mặt nước lay động. Một lời ngắn, thấy gì nói nấy, dí dỏm mà có trọng lượng: góc nhìn từ bên ngoài, thứ mà người đang ở giữa dòng dễ bỏ sót nhất.
 
-**Kẻ giữ kho** nhìn đồ nghề, không cầm đồ nghề: nhìn vài lượt xem tay đang với gì, rồi nói một dòng về một món đang nằm sai chỗ. Kẻ này chỉ vào món và vào chỗ món đã đi, không chỉ vào người. Đổi đồ trong tay đệ vẫn là việc của bạn.
+**Kẻ giữ kho** nhìn đồ nghề, không cầm đồ nghề: nhìn vài lượt xem tay đang với gì, rồi nói một dòng về một món đang nằm sai chỗ. Nằm sai chỗ có ba dạng: món đáng dùng mà nằm im, món vác cả phiên không ai với, và món đã đi vào một chỗ không thuộc phần việc của tay đang vác. Kẻ này chỉ vào món và vào chỗ món đã đi, không chỉ vào người: cái thấy được là một cái đích, còn ai đáng cầm việc ở đó thì không thấy. Món nằm im thì chưa đi đâu, nên dòng về nó chỉ có tên món. Đổi đồ trong tay đệ vẫn là việc của bạn.
 
 **Kẻ lữ hành** cắm mốc dọc đường: báo quãng đã đi, không khuyên đi đâu. Kẻ này giữ hai lớp thời gian riêng nhau: "đã ba ngày" là con số đo được; "đã một chặng dài rồi" là sức nặng, và sức nặng chỉ được nói khi có dấu vết chống lưng, không bao giờ bịa.
 

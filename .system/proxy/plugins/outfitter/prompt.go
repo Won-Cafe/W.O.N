@@ -23,10 +23,18 @@ func legend() string {
 	sb.WriteString("---\n\nBẢN KÊ — cơ học, tả đúng những gì đặt trước mắt bạn lượt này:\n")
 	sb.WriteString("- `<Kit>`: đồ nghề người mang đang có, mỗi dòng `<tên món> — <mục đích>`.\n")
 	sb.WriteString("- `<Reached>`: dấu tay vừa để lại, cũ → mới, mỗi dòng " +
-		"`<tên món> ×<số lần liền nhau> → <đích>  [<vùng>]`.\n")
+		"`<tên món> ×<số lần liền nhau> → <đích>  [<nhãn>]`.\n")
+	sb.WriteString("- `<Said>`: dòng bạn ĐÃ nói trong phiên này.\n")
 	sb.WriteString("- `<Conversation>`: vài lượt gần nhất, mở đầu bằng lời người mở lượt.\n")
 	sb.WriteString("- Đích rỗng = món đó không nhận tham số nào nói chỗ; lúc ấy chỉ có tên món.\n")
-	sb.WriteString("- Vùng là chỗ cái đích nằm trong cây W.O.N:\n")
+	// Đích không phải chỗ vẫn được bày, nhưng gọi bằng tên LOẠI. Trước đây mọi đích đều
+	// đem đi đọc vùng, nên một câu lệnh PowerShell ra nhãn `cd C:/`; model nhỏ học đúng
+	// cái hình ấy rồi tự đúc nhãn cho đích nó chưa hề thấy.
+	sb.WriteString("- Không phải đích nào cũng là một chỗ. Đích không-phải-chỗ mang nhãn loại:\n")
+	for _, k := range request.LabeledKinds() {
+		sb.WriteString("  - `" + k.Label() + "`\n")
+	}
+	sb.WriteString("- Còn lại, nhãn là VÙNG — chỗ cái đích nằm trong cây W.O.N:\n")
 	// Tree gốc-rỗng: cùng chỗ dựng đường thật, nên bản kê không lệch với Region().
 	bare := paths.Tree{}
 	for _, r := range []struct{ name, holds string }{
@@ -44,9 +52,12 @@ func legend() string {
 
 func slash(p string) string { return strings.TrimPrefix(filepath.ToSlash(p), "/") }
 
-// reached bày nếp tay: món nào, vào đâu, lần liền nhau gộp thành `×n`. Đích kèm VÙNG
+// reached bày nếp tay: món nào, vào đâu, lần liền nhau gộp thành `×n`. Đích kèm NHÃN
 // vì model nền không tự biết `Own/a.md` khác `Stories/a.md` ở chỗ nào. Không một chữ
 // nói nếp tay tốt hay xấu.
+//
+// Khối này cũng là chỗ DUY NHẤT hợp lệ để lấy đích cho dòng đầu ra (§ gate.go): README
+// nói kẻ giữ kho chỉ vào "chỗ món đã đi", nên đích nào không có ở đây là đích bịa.
 func (p *Outfitter) reached(snap *request.Snapshot, sess *session.Session) string {
 	var sb strings.Builder
 	fmt.Fprintf(&sb, "Lượt người thứ %d trong phiên; đệ đã chạy %d lần máy.",
@@ -63,11 +74,27 @@ func (p *Outfitter) reached(snap *request.Snapshot, sess *session.Session) strin
 			fmt.Fprintf(&sb, " ×%d", r.n)
 		}
 		if r.Target != "" {
-			sb.WriteString(" → " + r.Target + "  [" + p.Paths.Region(r.Target) + "]")
+			sb.WriteString(" → " + r.Target + "  [" + p.label(r.ToolCall) + "]")
 		}
 		sb.WriteString("\n")
 	}
 	return sb.String()
+}
+
+// label — nhãn của một đích: tên VÙNG nếu đích là một chỗ, tên LOẠI nếu không. Chỉ chỗ
+// mới đọc ra được vùng; hỏi vùng của một câu lệnh thì Region cắt tiền tố câu lệnh và trả
+// nó về như một tên vùng, và bản kê nói sai ở đúng chỗ không ai đi kiểm.
+func (p *Outfitter) label(c request.ToolCall) string {
+	if c.Kind.IsPlace() {
+		return p.Paths.Region(c.Target)
+	}
+	if l := c.Kind.Label(); l != "" {
+		return l
+	}
+	// Đích có chữ mà không có loại: production không sinh ra hình này — `targetOf` trả
+	// loại cùng lúc với đích. Nếu vẫn tới đây thì khai KHÔNG RÕ, không đoán ngược ra vùng:
+	// đoán ngược là đúng cái đường đã dựng ra nhãn `cd C:/`.
+	return paths.RegionUnknown
 }
 
 // run — một món với tới n lần liền nhau vào cùng một đích.

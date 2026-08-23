@@ -260,7 +260,7 @@ Vài lựa chọn nhỏ cho từng plugin:
 | Dòng | Mặc định | Nghĩa |
 |---|---|---|
 | `loiterer.faces` | `anh xe ôm, cô bán nước, chú bảo vệ` | khuôn mặt để kẻ tạt ngang mang, xoay vòng theo từng lần chạy; `off` = ghé vô danh |
-| `outfitter.min_turns` | `3` | bạn chưa nói đủ mấy lượt thì chưa lên tiếng |
+| `outfitter.min_runs` | `6` | mạch chưa chạy đủ mấy lần thì chưa lên tiếng: đếm lần chạy, không đếm lượt bạn nói, vì kẻ này nói về đồ nghề |
 | `memory.stone_weight` | `10` | mỗi lần xác nhận cộng bao nhiêu điểm cho một trang ký ức |
 | `memory.max_index_per_zone` | `20` | trần số dòng index cho mỗi vùng ký ức |
 | `memory.scorer` | `Shu` | đệ được phép ghi điểm cho trang ký ức |
