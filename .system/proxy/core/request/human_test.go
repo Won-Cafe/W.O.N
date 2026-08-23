@@ -56,10 +56,10 @@ func TestReached(t *testing.T) {
 	if len(got) != 3 {
 		t.Fatalf("OpenAI: %v", got)
 	}
-	if got[0] != (ToolCall{Name: "grep_search", Target: "lấn"}) {
+	if got[0] != (ToolCall{Name: "grep_search", Target: "lấn", Kind: TargetPattern}) {
 		t.Errorf("OpenAI đích từ arguments dạng chuỗi JSON: %+v", got[0])
 	}
-	if got[1] != (ToolCall{Name: "read_file", Target: "Stories/x.md"}) {
+	if got[1] != (ToolCall{Name: "read_file", Target: "Stories/x.md", Kind: TargetPath}) {
 		t.Errorf("OpenAI: %+v", got[1])
 	}
 	if got[2] != (ToolCall{Name: "read_file"}) {
@@ -72,7 +72,7 @@ func TestReached(t *testing.T) {
 			{"type":"tool_use","id":"t1","name":"Write","input":{"file_path":"Own/a.md","content":"RUỘT FILE"}}]}
 	]}`, FormatAnthropic)
 	got = anth.Snapshot(FrameRules{}).Reached
-	if len(got) != 1 || got[0] != (ToolCall{Name: "Write", Target: "Own/a.md"}) {
+	if len(got) != 1 || got[0] != (ToolCall{Name: "Write", Target: "Own/a.md", Kind: TargetPath}) {
 		t.Fatalf("Anthropic: %+v", got)
 	}
 }

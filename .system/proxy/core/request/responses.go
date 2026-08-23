@@ -172,7 +172,8 @@ func toolsCalledResponses(msg json.RawMessage) []ToolCall {
 	if json.Unmarshal(msg, &item) != nil || item.Type != "function_call" || item.Name == "" {
 		return nil
 	}
-	return []ToolCall{{Name: item.Name, Target: targetOf([]byte(item.Arguments))}}
+	target, kind := targetOf([]byte(item.Arguments))
+	return []ToolCall{{Name: item.Name, Target: target, Kind: kind}}
 }
 
 // responsesRoleOf — suy vai cho item không mang `role`. Responses có item `function_call`

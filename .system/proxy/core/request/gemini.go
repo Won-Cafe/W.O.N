@@ -290,7 +290,8 @@ func geminiToolsCalled(msg json.RawMessage) []ToolCall {
 		if json.Unmarshal(raw, &fc) != nil || fc.Name == "" {
 			continue
 		}
-		out = append(out, ToolCall{Name: fc.Name, Target: targetOf(fc.Args)})
+		target, kind := targetOf(fc.Args)
+		out = append(out, ToolCall{Name: fc.Name, Target: target, Kind: kind})
 	}
 	return out
 }

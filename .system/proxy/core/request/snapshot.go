@@ -22,12 +22,47 @@ type Turn struct {
 	Text string
 }
 
-// ToolCall — một lượt với tay: món gì, và chạm vào đâu. Target là đường dẫn/lệnh
-// rút từ tham số, rỗng khi tool không nhận đích nào có tên. Chỉ đọc: lõi không có
-// đường ghi vào `tools` lẫn vào lượt gọi.
+// TargetKind — đích này là LOẠI gì. Cần phân biệt vì chỉ một loại là một CHỖ trong cây:
+// đưa một câu lệnh cho hàm đọc vùng thì nó cắt tiền tố của câu lệnh và trả về đó như một
+// tên vùng (`cd C:/`), và bên đọc nhận một cái nhãn nói sai.
+type TargetKind uint8
+
+const (
+	TargetNone TargetKind = iota
+	TargetPath
+	TargetCommand
+	TargetURL
+	TargetPattern
+)
+
+// kindLabels — tên gọi từng loại đích. Chỗ DUY NHẤT đặt tên chúng, nên bên đọc lấy ở
+// đây chứ không chép tay: thêm một loại thì bên đọc tự đúng.
+var kindLabels = map[TargetKind]string{
+	TargetCommand: "câu lệnh",
+	TargetURL:     "địa chỉ ngoài",
+	TargetPattern: "khuôn tìm",
+}
+
+// IsPlace — đích loại này có phải một chỗ trong cây không, tức có đem đi đọc vùng được
+// không. Một vị từ riêng thay vì để bên đọc suy từ `Label()` rỗng: một chuỗi rỗng làm
+// tín hiệu thì bên nào quên xét nó sẽ in ra `[]` mà không ai báo.
+func (k TargetKind) IsPlace() bool { return k == TargetPath }
+
+// Label — tên loại đích. Rỗng cho loại là một CHỖ: chỗ gọi bằng tên VÙNG của nó, và tên
+// vùng không nằm ở đây.
+func (k TargetKind) Label() string { return kindLabels[k] }
+
+// LabeledKinds — các loại CÓ tên gọi, thứ tự ổn định. Không phải mọi loại: loại là một
+// chỗ thì không có tên loại. Để bên đọc khai đủ nhãn mà không chép tay.
+func LabeledKinds() []TargetKind { return []TargetKind{TargetCommand, TargetURL, TargetPattern} }
+
+// ToolCall — một lượt với tay: món gì, chạm vào đâu, và cái đích ấy là loại gì. Target
+// rỗng khi tool không nhận đích nào có tên. Chỉ đọc: lõi không có đường ghi vào `tools`
+// lẫn vào lượt gọi.
 type ToolCall struct {
 	Name   string
 	Target string
+	Kind   TargetKind
 }
 
 // Snapshot là bản sao trung lập, chỉ-đọc của request.
@@ -136,7 +171,8 @@ func toolsCalled(msg json.RawMessage) []ToolCall {
 	if json.Unmarshal(msg, &oai) == nil {
 		for _, tc := range oai.ToolCalls {
 			if tc.Function.Name != "" {
-				out = append(out, ToolCall{Name: tc.Function.Name, Target: targetOf([]byte(tc.Function.Arguments))})
+				target, kind := targetOf([]byte(tc.Function.Arguments))
+				out = append(out, ToolCall{Name: tc.Function.Name, Target: target, Kind: kind})
 			}
 		}
 	}
@@ -152,7 +188,8 @@ func toolsCalled(msg json.RawMessage) []ToolCall {
 	if json.Unmarshal(msg, &anth) == nil {
 		for _, blk := range anth.Content {
 			if blk.Type == "tool_use" && blk.Name != "" {
-				out = append(out, ToolCall{Name: blk.Name, Target: targetOf(blk.Input)})
+				target, kind := targetOf(blk.Input)
+				out = append(out, ToolCall{Name: blk.Name, Target: target, Kind: kind})
 			}
 		}
 	}
@@ -163,29 +200,41 @@ func toolsCalled(msg json.RawMessage) []ToolCall {
 // đoán: quét bừa mọi tham số thì `content` của một lần ghi file (cả nội dung mới)
 // cũng lọt vào ngữ cảnh — vừa vô nghĩa vừa là chỗ bí mật rò ra (#5). Thứ tự là thứ
 // tự ưu tiên: khoá đứng trước tả đích chính xác hơn khoá đứng sau.
-var targetKeys = []string{"path", "url", "glob", "command", "file_path", "filePath", "notebook_path", "pattern"}
+var targetKeys = []struct {
+	key  string
+	kind TargetKind
+}{
+	{"path", TargetPath},
+	{"url", TargetURL},
+	{"glob", TargetPattern},
+	{"command", TargetCommand},
+	{"file_path", TargetPath},
+	{"filePath", TargetPath},
+	{"notebook_path", TargetPath},
+	{"pattern", TargetPattern},
+}
 
 // targetOf rút đích của một lượt gọi tool từ tham số. Không khoá nào khớp → rỗng,
 // và bên nhận chỉ thấy tên món. Cắt ngắn: đây là cái nhãn, không phải bản ghi.
-func targetOf(args []byte) string {
+func targetOf(args []byte) (string, TargetKind) {
 	if len(args) == 0 {
-		return ""
+		return "", TargetNone
 	}
 	var m map[string]json.RawMessage
 	if json.Unmarshal(args, &m) != nil {
-		return ""
+		return "", TargetNone
 	}
-	for _, key := range targetKeys {
-		raw, ok := m[key]
+	for _, k := range targetKeys {
+		raw, ok := m[k.key]
 		if !ok {
 			continue
 		}
 		var s string
 		if json.Unmarshal(raw, &s) == nil && strings.TrimSpace(s) != "" {
-			return Truncate(strings.TrimSpace(s), targetLen)
+			return Truncate(strings.TrimSpace(s), targetLen), k.kind
 		}
 	}
-	return ""
+	return "", TargetNone
 }
 
 // flattenContent làm phẳng content thành text hội thoại: chỉ khối text, nối \n.

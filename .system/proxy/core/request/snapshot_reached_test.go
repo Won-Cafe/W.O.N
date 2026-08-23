@@ -63,3 +63,39 @@ func TestFirstUserKeepsTheOldAnchorWhenNoWrapperIsDeclared(t *testing.T) {
 		t.Errorf("chưa khai vỏ thì không siết: %q", snap.FirstUser)
 	}
 }
+
+// Đích rút được, nhưng nó là LOẠI gì thì phải nói ra. Chỗ này quyết định một nhãn ở tầng
+// trên: hỏi vùng-trong-cây của một câu lệnh PowerShell thì hàm đọc vùng cắt tiền tố câu
+// lệnh và trả nó về như một tên vùng (`cd C:/`). Đo trên nhật ký thật: 35 trong 232 dòng
+// bản kê gửi cho Outfitter mang một nhãn kiểu ấy.
+func TestReachedTellsWhatKindOfTargetItRead(t *testing.T) {
+	b := mustParseFmt(t, `{"messages":[
+		{"role":"assistant","content":null,"tool_calls":[
+			{"function":{"name":"run_in_terminal","arguments":"{\"command\":\"cd C:\\\\won; go vet ./...\"}"}},
+			{"function":{"name":"read_file","arguments":"{\"file_path\":\"README.md\"}"}},
+			{"function":{"name":"fetch","arguments":"{\"url\":\"https://example.com/a\"}"}},
+			{"function":{"name":"grep_search","arguments":"{\"pattern\":\"func .*\"}"}},
+			{"function":{"name":"task_complete","arguments":"{}"}}
+		]}
+	]}`, FormatOpenAI)
+
+	got := b.Snapshot(FrameRules{}).Reached
+	want := []TargetKind{TargetCommand, TargetPath, TargetURL, TargetPattern, TargetNone}
+	if len(got) != len(want) {
+		t.Fatalf("với tới %d món mà đọc ra %d: %+v", len(want), len(got), got)
+	}
+	for i, k := range want {
+		if got[i].Kind != k {
+			t.Errorf("%s: loại đích %v, muốn %v", got[i].Name, got[i].Kind, k)
+		}
+	}
+	// Loại đọc-ra-vùng không mang tên loại: chỗ gọi bằng tên vùng của nó.
+	if TargetPath.Label() != "" || TargetNone.Label() != "" {
+		t.Error("chỗ không được mang tên loại — nhãn của nó là tên vùng")
+	}
+	for _, k := range LabeledKinds() {
+		if k.Label() == "" {
+			t.Errorf("loại %v không có tên gọi", k)
+		}
+	}
+}
