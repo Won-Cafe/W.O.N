@@ -349,11 +349,11 @@ Tay cầm là của bạn, vì sai là của bạn và sửa cũng là của b�
 
 Ba kẻ này không thuộc Circle. Họ đứng ở tầng dưới, chỗ mọi lời của mọi đệ đều đi qua, nên họ chạm tới *từng đệ*, không riêng Tzu. Họ không nói thẳng với bạn: điều họ thấy nổi lên qua Tzu, khi Tzu tổng hợp. Và họ nói rất thưa, mặc định là im.
 
-**Kẻ tạt ngang** đứng ngoài cuộc mà nhìn, đôi lúc làm mặt nước lay động. Một lời ngắn, thấy gì nói nấy, dí dỏm mà có trọng lượng: góc nhìn từ bên ngoài, thứ mà người đang ở giữa dòng dễ bỏ sót nhất.
+**Kẻ tạt ngang** đứng ngoài cuộc mà nhìn, đôi lúc làm mặt nước lay động. Một lời ngắn, thấy gì nói nấy, dí dỏm mà có trọng lượng: góc nhìn từ bên ngoài, thứ mà người đang ở giữa dòng dễ bỏ sót nhất. Kẻ này chỉ nghe đoạn đối thoại đang diễn ra, và chỉ soi hai điều: một góc đang bị che, một giả định chưa ai nói ra. Đường dài là việc của kẻ lữ hành.
 
 **Kẻ giữ kho** nhìn đồ nghề, không cầm đồ nghề: nhìn vài lượt xem tay đang với gì, rồi nói một dòng về một món đang nằm sai chỗ. Nằm sai chỗ có ba dạng: món đáng dùng mà nằm im, món vác cả phiên không ai với, và món đã đi vào một chỗ không thuộc phần việc của tay đang vác. Kẻ này chỉ vào món và vào chỗ món đã đi, không chỉ vào người: cái thấy được là một cái đích, còn ai đáng cầm việc ở đó thì không thấy. Món nằm im thì chưa đi đâu, nên dòng về nó chỉ có tên món. Đổi đồ trong tay đệ vẫn là việc của bạn.
 
-**Kẻ lữ hành** cắm mốc dọc đường: báo quãng đã đi, không khuyên đi đâu. Kẻ này giữ hai lớp thời gian riêng nhau: "đã ba ngày" là con số đo được; "đã một chặng dài rồi" là sức nặng, và sức nặng chỉ được nói khi có dấu vết chống lưng, không bao giờ bịa.
+**Kẻ lữ hành** cắm mốc dọc đường: báo quãng đã đi, không khuyên đi đâu. Kẻ này giữ hai lớp thời gian riêng nhau: "đã ba ngày" là con số đo được; "đã một chặng dài rồi" là sức nặng, và sức nặng chỉ được nói khi có dấu vết chống lưng, không bao giờ bịa. Dấu vết ấy có hai nguồn: con số của chính mạch, và **trục Threshold**. Trong ba kẻ, chỉ kẻ này đọc một trục bạn viết, vì một ngưỡng bạn tự ghi là thứ duy nhất chống lưng được cho một lời về sức nặng.
 
 Có một điều cố ý trong cách dựng ba kẻ này: họ nghĩ bằng một cái đầu nhỏ hơn hẳn cái đầu đang lo việc chính. Bạn và một AI mạnh, ngồi lâu với nhau, sẽ cùng phủ quanh vấn đề một lớp váng ngôn từ mỗi lúc một khéo. Con mắt đơn sơ, không đủ khéo để lớp váng ấy thuyết phục nổi, mới là con mắt xoáy thẳng vào chỗ cả hai không tự thấy.
 
