@@ -72,7 +72,7 @@ const selfPage = "# Memory — Self\n\n*Ký ức bền về bạn.*\n\nRuột tr
 func newMem(t *testing.T, root string, llm chatter) *Memory {
 	t.Helper()
 	opts, _ := json.Marshal(map[string]any{})
-	p, err := New(plugin.Env{Paths: paths.Tree{Root: root}, Services: plugin.NewHub(), Options: opts})
+	p, err := New(plugin.Env{Paths: paths.Tree{Root: root}, Services: plugin.NewHub(), Options: opts, Control: "127.0.0.1:7777"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -798,7 +798,7 @@ func TestBlockDeclaresWhatTheAgentCanDo(t *testing.T) {
 		"thì nói ra",                       // làm gì — lời chung cho MỌI vai
 		"bút của kho nằm ở đệ Shu",         // bút có địa chỉ, nêu như một sự thật
 		"`# tiêu đề`", "*mô tả*",           // vành đai: hình một trang
-		"PUT /plugins/memory/update", // vành đai: cửa sỏi
+		"/plugins/memory/update", // vành đai: cửa sỏi (route, có thể kèm host)
 	} {
 		if !strings.Contains(c.Sys, want) {
 			t.Errorf("khối thiếu %q:\n%s", want, c.Sys)
@@ -837,19 +837,42 @@ func TestNoteWordingFitsEveryRole(t *testing.T) {
 	}
 }
 
-// Đường tới cửa sỏi dựng từ chính tên plugin, và KHÔNG mang host:port: địa chỉ Control
-// API là cấu hình của lõi — plugin không biết nó, nên không được đoán (#6).
-func TestScoreRouteCarriesNoGuessedAddress(t *testing.T) {
+// Đường tới cửa sỏi dựng từ chính tên plugin. Khi lõi truyền Control address, route
+// mang đầy host:port — plugin không đoán, nó dùng đúng thứ lõi cho (#6: cấm đoán, không
+// cấm truyền). Khi Control tắt (address rỗng), route không host và renderUse tự bỏ dòng sỏi.
+func TestScoreRouteCarriesControlAddress(t *testing.T) {
 	root := writeStore(t, map[string]string{"working/a.md": focusPage})
 	m := newMem(t, root, nil)
 	if got := m.scoreRoute(); !strings.Contains(got, m.Name()) {
 		t.Errorf("đường phải dựng từ tên plugin, got %q", got)
 	}
+	if !strings.Contains(m.scoreRoute(), "http://127.0.0.1:7777") {
+		t.Errorf("route phải mang address lõi truyền, got %q", m.scoreRoute())
+	}
 	c, _ := m.give(context.Background(), snap(), turnSession(t, 1))
-	for _, guess := range []string{"127.0.0.1", "localhost", "7777", "http://"} {
-		if strings.Contains(c.Sys, guess) {
-			t.Errorf("đang đoán địa chỉ của lõi: %q\n%s", guess, c.Sys)
+	for _, want := range []string{"http://127.0.0.1:7777", "X-WON-Agent", "\"action\""} {
+		if !strings.Contains(c.Sys, want) {
+			t.Errorf("guide thiếu %q:\n%s", want, c.Sys)
 		}
+	}
+}
+
+// Khi Control tắt, route không host và dòng sỏi không xuất — sỏi là tầng phụ, tắt thì
+// trang vẫn sống, chỉ không chấm điểm (#2, #3).
+func TestScoreRouteOmitsAddressWhenControlOff(t *testing.T) {
+	root := writeStore(t, map[string]string{"working/a.md": focusPage})
+	opts, _ := json.Marshal(map[string]any{})
+	p, err := New(plugin.Env{Paths: paths.Tree{Root: root}, Services: plugin.NewHub(), Options: opts})
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := p.(*Memory)
+	if got := m.scoreRoute(); strings.Contains(got, "http://") {
+		t.Errorf("Control tắt thì route không host, got %q", got)
+	}
+	c, _ := m.give(context.Background(), snap(), turnSession(t, 1))
+	if strings.Contains(c.Sys, "sỏi") || strings.Contains(c.Sys, "Sỏi") {
+		t.Errorf("Control tắt thì dòng sỏi phải im:\n%s", c.Sys)
 	}
 }
 

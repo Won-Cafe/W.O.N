@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"won/proxy/core/paths"
+	"won/proxy/core/request"
 	"won/proxy/core/session"
 )
 
@@ -35,7 +36,7 @@ func renderIndex(lines string, dropped, total int, scorer, route string) string 
 	if s := renderSigns(); s != "" {
 		sb.WriteString(s + "\n\n")
 	}
-	if w := renderUse(scorer, route); w != "" {
+	if w := renderUse(scorer, route, request.HeaderAgent); w != "" {
 		sb.WriteString(w + "\n")
 	}
 	sb.WriteString(lines)
@@ -90,7 +91,7 @@ func renderSigns() string {
 // Hai dòng cuối là ràng buộc thật, không phải mô tả: trang thiếu tiêu đề + mô tả nằm trên
 // đĩa mà không vào index, nên bộ chọn không chọn tới và đệ không gọi tên được — mất trong
 // im lặng. Và sỏi chỉ vào được qua đúng một cửa.
-func renderUse(scorer, route string) string {
+func renderUse(scorer, route, headerAgent string) string {
 	who := pen(scorer)
 	var sb strings.Builder
 	sb.WriteString("Nghe thấy một dấu như thế mà kho chưa có trang nào giữ nó thì nói ra — nói vì sao đáng, trước khi có ai đặt bút.\n")
@@ -98,7 +99,11 @@ func renderUse(scorer, route string) string {
 	fmt.Fprintf(&sb, "Mạch chỉ đọc, không ghi: bút của kho nằm ở %s — trang mới, trang dời vùng, trang hạ độ tin đều qua tay đó.\n", who)
 	sb.WriteString("Một trang là `vùng/tên.md`, mở bằng một dòng `# tiêu đề` rồi ngay dưới một dòng `*mô tả*` in nghiêng — thiếu hai dòng ấy thì trang nằm trên đĩa mà không vào được index này.\n")
 	if scorer != "" && route != "" {
-		fmt.Fprintf(&sb, "Sỏi `s`/`f` là số của máy: ghi qua `%s` trên Control API, chỉ %s mở được cửa ấy — không đặt tay vào frontmatter.\n", route, who)
+		if strings.HasPrefix(route, "http://") {
+			fmt.Fprintf(&sb, "Sỏi `s`/`f` là số của máy: ghi qua HTTP —\n  %s\n  Header: %s: %s\n  Body: {\"path\":\"<vùng/tên.md>\",\"action\":\"confirm\"}  // hoặc \"contest\"\nChỉ %s mở được cửa ấy — không đặt tay vào frontmatter.\n", route, headerAgent, scorer, who)
+		} else {
+			fmt.Fprintf(&sb, "Sỏi `s`/`f` là số của máy: ghi qua `%s` trên Control API, chỉ %s mở được cửa ấy — không đặt tay vào frontmatter.\n", route, who)
+		}
 	}
 	return sb.String()
 }

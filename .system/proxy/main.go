@@ -143,6 +143,7 @@ func main() {
 			Options:  cfg.Plugins[name].Options,
 			Paths:    cfg.Paths,
 			Services: hub,
+			Control:  cfg.Control,
 		})
 		if err != nil {
 			slog.Warn("plugin: build failed", "plugin", name, "err", err)

@@ -60,6 +60,7 @@ type Env struct {
 	Paths    paths.Tree
 	Services *Hub
 	Options  json.RawMessage // khối options thô — plugin tự parse schema của mình
+	Control  string          // Control API address (host:port), rỗng = tắt — lõi truyền, plugin không đoán (#6)
 }
 
 // Hub — main đặt service dùng chung lúc wiring, plugin lấy ra bằng type assertion.

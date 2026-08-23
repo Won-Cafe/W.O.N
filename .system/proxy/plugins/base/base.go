@@ -35,15 +35,16 @@ type Base struct {
 	Paths    paths.Tree
 	Services *plugin.Hub
 
-	budget time.Duration   // 0 = không khai riêng, chịu trần của lõi
-	opts   json.RawMessage // phần còn lại, dành cho schema của plugin
+	control string          // Control API address (host:port), rỗng = tắt
+	budget  time.Duration   // 0 = không khai riêng, chịu trần của lõi
+	opts    json.RawMessage // phần còn lại, dành cho schema của plugin
 }
 
 // New nhấc các khoá base giữ ra khỏi options. Options hỏng không chặn dựng plugin:
 // phần còn lại giao nguyên vẹn, và plugin sẽ tự vỡ rõ ở ParseOptions nếu thật sự sai.
 func New(env plugin.Env) Base {
 	b := Base{Name: env.Name, Paths: env.Paths, Services: env.Services, opts: env.Options,
-		budget: defaultBudgetMs * time.Millisecond}
+		control: env.Control, budget: defaultBudgetMs * time.Millisecond}
 	if len(env.Options) == 0 {
 		return b
 	}
@@ -70,6 +71,10 @@ func New(env plugin.Env) Base {
 type Chatter interface {
 	Chat(ctx context.Context, system, user string) (string, error)
 }
+
+// ControlAddr — Control API address (host:port) lõi truyền lúc Build; rỗng khi tắt.
+// Plugin không đoán address (#6) — nó dùng đúng thứ lõi cho.
+func (b Base) ControlAddr() string { return b.control }
 
 // Budget — trần riêng plugin khai qua `<tên>.budget_ms`; 0 = không khai. Lõi đọc nó qua
 // interface `plugin.Budgeted` và bọc TRỌN lượt Contribute, nên đồng hồ chạy từ lúc plugin

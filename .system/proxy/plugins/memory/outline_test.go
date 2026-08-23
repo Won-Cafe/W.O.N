@@ -15,7 +15,7 @@ import (
 func jsonMarshal(v any) ([]byte, error) { return json.Marshal(v) }
 
 func pluginEnv(root string, opts json.RawMessage) plugin.Env {
-	return plugin.Env{Paths: paths.Tree{Root: root}, Services: plugin.NewHub(), Options: opts}
+	return plugin.Env{Paths: paths.Tree{Root: root}, Services: plugin.NewHub(), Options: opts, Control: "127.0.0.1:7777"}
 }
 
 // newMemOpt — plugin với options khai tay; newMem luôn tắt tóm tắt nên không dùng được

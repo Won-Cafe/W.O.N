@@ -74,6 +74,7 @@ type Memory struct {
 	indexPerZone int
 	stoneWeight  int
 	scorer       string
+	control      string // Control API address (host:port), rỗng = tắt
 	scoreMu      sync.Mutex
 }
 
@@ -101,6 +102,7 @@ func New(env plugin.Env) (plugin.Plugin, error) {
 	if m.scorer == "" {
 		m.scorer = defaultScorer
 	}
+	m.control = b.ControlAddr()
 	// Gán qua cửa nil: *Client nil nhét vào interface thành interface KHÔNG nil,
 	// và khi đó `p.llm == nil` nói dối.
 	if lm := b.LLM(); lm != nil {
@@ -201,9 +203,15 @@ func (p *Memory) takeNote(snap *request.Snapshot, sess *session.Session) string 
 }
 
 // scoreRoute — đường tới cửa sỏi, dựng từ chính tên plugin: lõi mount extension dưới
-// `/plugins/<tên>/`, nên chép cứng chuỗi là một bản lệch được khi tên đổi. Không kèm
-// host:port — địa chỉ Control API là cấu hình của lõi, plugin không biết và không đoán (#6).
-func (p *Memory) scoreRoute() string { return "PUT /plugins/" + p.Name() + "/update" }
+// `/plugins/<tên>/`, nên chép cứng chuỗi là một bản lệch được khi tên đổi. Khi lõi truyền
+// Control address, ghép thành URL đầy đủ; khi Control tắt (address rỗng), trả "" —
+// renderUse dùng route rỗng làm cửa tự bỏ dòng sỏi (#3: sỏi là tầng phụ, tắt thì im).
+func (p *Memory) scoreRoute() string {
+	if p.control == "" {
+		return ""
+	}
+	return "http://" + p.control + "/plugins/" + p.Name() + "/update"
+}
 
 // joinBlocks nối các khối không rỗng bằng một dòng trống, bỏ qua khối rỗng.
 func joinBlocks(parts ...string) string {
