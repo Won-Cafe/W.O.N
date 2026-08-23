@@ -29,7 +29,7 @@ func (s *Session) info(now time.Time) Info {
 		Runs:      s.runs,
 		FirstSeen: s.firstSeen,
 		IdleS:     int64(now.Sub(s.lastSeen).Seconds()),
-		Said:      len(s.said),
+		Said:      saidCount(s.said),
 		Opened:    len(s.opened),
 	}
 }
@@ -56,4 +56,14 @@ func (st *Store) Infos(now time.Time) []Info {
 		return out[i].FirstSeen.Before(out[j].FirstSeen)
 	})
 	return out
+}
+
+// saidCount — tổng số dòng mọi giọng đã nói. Info giữ SỐ, không giữ nội dung (#5), và
+// sổ chia theo giọng nên số ấy phải cộng lại, không đọc được từ độ dài một map.
+func saidCount(said map[string][]string) int {
+	n := 0
+	for _, lines := range said {
+		n += len(lines)
+	}
+	return n
 }

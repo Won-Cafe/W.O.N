@@ -25,9 +25,17 @@ const (
 // Contract dựng hợp đồng đầu ra: hai dạng, và không dạng nào đòi marker — marker do
 // Say đeo. Model nền chỉ còn một quyết định, nói hay im.
 //
-// Hợp đồng khai HÌNH của hai dạng, KHÔNG khai nên chọn dạng nào: "nói hay im" thuộc
-// soul, hình của `∅` thuộc đây (§ Ba dấu của Outfitter, bảng ranh giới).
-func Contract(name, marker, emptyMeans, finalGate string, extra ...string) string {
+// Hợp đồng khai HÌNH của hai dạng, KHÔNG khai luật nghề: "nói hay im" và mọi ranh giới
+// của một vai thuộc soul (§ Ba dấu của Outfitter, bảng ranh giới).
+//
+// Hai thứ từng nằm ở đây và đã bỏ, cùng một lý do: mỗi tiếng có một vế FINAL GATE và một
+// vế "shapes of a line", mà cả sáu vế ấy đọc lại Will và Origin của chính soul — bản thứ
+// hai của một luật đã có nhà, và hai bản thì lệch được. Bỏ vế cửa-cuối thì tham số
+// `finalGate` chết theo; `name` với `marker` thì chết từ trước, vì hàm không đọc chúng.
+//
+// Cái ở lại là thứ soul không nói được: hình của hai dạng, trần một dòng, và TÊN các khối
+// thật trong lời hỏi — soul nói *cái nó thấy*, không nói *khối nào chở cái đó*.
+func Contract(emptyMeans string, extra ...string) string {
 	var sb strings.Builder
 	sb.WriteString("---\n\nOUTPUT CONTRACT — mechanical, overrides style:\n")
 	sb.WriteString("- Return exactly one of two forms. There is no third form.\n")
@@ -39,7 +47,6 @@ func Contract(name, marker, emptyMeans, finalGate string, extra ...string) strin
 			sb.WriteString("- " + e + "\n")
 		}
 	}
-	sb.WriteString("- FINAL GATE before you commit: " + finalGate + " — drop it, return `" + Silent + "`.\n")
 	return sb.String()
 }
 

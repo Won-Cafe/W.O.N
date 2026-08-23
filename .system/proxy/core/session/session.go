@@ -47,7 +47,7 @@ type Session struct {
 
 	// Đổi theo lượt.
 	note      string
-	said      []string
+	said      map[string][]string
 	lastSeen  time.Time
 	pastTurns []int
 
@@ -63,8 +63,10 @@ type Session struct {
 	replyMark uint64
 
 	// Hai con số, không một: `runs` là lần proxy chạy, `turns` là lần NGƯỜI nói. Một lượt
-	// người kéo nhiều lần chạy, nên trộn chúng làm mọi ngưỡng đọc sai: `min_turns = 3`
-	// chạm ngay trong một lượt, và soul nghe "lượt thứ 7" khi người mới nói một câu.
+	// người kéo nhiều lần chạy, nên trộn chúng thì chỗ nào đọc sai con số cũng lệch mà
+	// không kêu: `PastTurns` đọc lần chạy thì một phiên vòng tool dài hiện ra khổng lồ, và
+	// soul nghe "lượt thứ 7" khi người mới nói một câu. Lõi bày cả hai và không chọn hộ:
+	// bên đọc biết mình tiêu con số nào, lõi thì không cần biết có ai đọc.
 	runs  int
 	turns int
 
@@ -322,21 +324,30 @@ func (s *Session) HasOpened(path string) bool {
 	return false
 }
 
-// Said — dòng plugin đã nói trong phiên, đi vào prompt để soul thấy mình đã nói gì mà
-// đừng nhắc lại. Luật "mỗi mốc một lần" thuộc soul, nên dữ kiện giữ nó phải tới tay soul.
-func (s *Session) Said() []string {
+// Said — dòng MỘT giọng đã nói trong phiên, đi vào prompt để soul thấy mình đã nói gì
+// mà đừng nhắc lại. Luật "mỗi mốc một lần" thuộc soul, nên dữ kiện giữ nó phải tới tay
+// soul.
+//
+// Sổ chia theo giọng, không dồn một chỗ. `plugin` là KHOÁ, không phải một cái tên lõi
+// nhận ra: lõi không biết có những giọng nào, chỉ biết mỗi giọng phải đọc lại đúng lời
+// của chính nó. Dồn một chỗ thì một giọng đọc được lời giọng khác và nhận làm lời mình —
+// và giọng nào bày trọn sổ ra cho model xem thì bày cả lời nó chưa từng nói.
+func (s *Session) Said(plugin string) []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return append([]string(nil), s.said...)
+	return append([]string(nil), s.said[plugin]...)
 }
 
-func (s *Session) Say(line string) {
+func (s *Session) Say(plugin, line string) {
 	if line == "" {
 		return
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.said = append(s.said, line)
+	if s.said == nil {
+		s.said = map[string][]string{}
+	}
+	s.said[plugin] = append(s.said[plugin], line)
 }
 
 // Asked — câu này đã hỏi trong phiên chưa; chưa thì ghi sổ rồi trả false. Theo phiên,

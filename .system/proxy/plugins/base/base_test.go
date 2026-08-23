@@ -266,16 +266,22 @@ func TestSayCapsLength(t *testing.T) {
 	}
 }
 
-// Hợp đồng KHÔNG còn đòi marker: khuôn nào đã bỏ khỏi prompt thì không còn là chỗ
-// model lạc được. Nó vẫn phải nói rõ hai dạng và `∅`.
-func TestContractDropsMarkerShape(t *testing.T) {
-	c := Contract("Outfitter", "🧰", "im lặng.", "cửa cuối")
-	if strings.Contains(c, "🧰") {
-		t.Errorf("hợp đồng không được đòi marker nữa:\n%s", c)
-	}
-	for _, want := range []string{Silent, "one of two forms", "the line itself", "FINAL GATE"} {
+// Hợp đồng chỉ chở HÌNH của hai dạng. Marker không còn là tham số, nên nó không còn là
+// chỗ model lạc được — bảo đảm bằng cấu trúc, không bằng một câu assert.
+//
+// Cửa cuối cũng không còn: vế ấy ở cả ba tiếng đều đọc lại Will của chính soul, và một
+// luật hai bản là hai bản lệch được. Test này giữ cái ranh ấy: hợp đồng nói hai dạng, và
+// không nói một chữ nào về luật nghề.
+func TestContractCarriesShapeOnly(t *testing.T) {
+	c := Contract("im lặng.", "Name only tools that appear in `<Kit>`.")
+	for _, want := range []string{Silent, "one of two forms", "the line itself", "<Kit>"} {
 		if !strings.Contains(c, want) {
 			t.Errorf("hợp đồng thiếu %q:\n%s", want, c)
+		}
+	}
+	for _, gone := range []string{"FINAL GATE", "Shapes of a line", "🧰", "Outfitter"} {
+		if strings.Contains(c, gone) {
+			t.Errorf("hợp đồng không được chở %q nữa:\n%s", gone, c)
 		}
 	}
 }

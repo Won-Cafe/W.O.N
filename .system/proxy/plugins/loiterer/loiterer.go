@@ -96,19 +96,10 @@ func (p *Loiterer) Contribute(ctx context.Context, snap *request.Snapshot, sess 
 	// có House 8 lượt hỏng, bỏ House còn 3, và mọi lần gọi ra một cái tên lạ đều ở nhánh
 	// có House. Bớt luôn 2.5KB mỗi lượt.
 	system := soulText + "\n\n" +
-		base.Contract(soulName, marker,
+		base.Contract(
 			"silence; the conversation goes on untouched.",
-			"the line you are writing answers the user or tells the recipient what to do — "+
-				"you are passing by, not taking the job",
 			append([]string{
-				"Your line must point at words that actually appear in THIS conversation. " +
-					"Never invent an earlier turn, and never name anyone the conversation does not name.",
-				"Shapes of a line — these are shapes, not sentences to reuse; copying a whole " +
-					"sample line verbatim is worse than silence: the same question asked across " +
-					"several turns → point at the loop itself, in this turn's words · a word " +
-					"nobody defined while both sides already act on it → name that word · " +
-					"deferred items stacking up → count them out · a habit forming that nobody " +
-					"has named → name it, without judging it.",
+				"Never invent an earlier turn, and never name anyone this conversation does not name.",
 			}, extra...)...)
 	user := localmodel.RenderUser(snap, "Recipient", snap.Agent)
 

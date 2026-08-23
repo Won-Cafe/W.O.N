@@ -90,7 +90,7 @@ func TestRoadCarriesNumbersNotVerdicts(t *testing.T) {
 	}
 
 	// Mốc đã cắm quay lại trong Road để soul không nhắc lại nó.
-	sess.Say("🛣️ Wayfarer: vắng 4 giờ trước phiên này.")
+	sess.Say("Wayfarer", "🛣️ Wayfarer: vắng 4 giờ trước phiên này.")
 	if r2 := p.road(&request.Snapshot{Agent: "Tzu", ReceivedAt: now}, sess); !strings.Contains(r2, "đừng cắm lại") ||
 		!strings.Contains(r2, "vắng 4 giờ") {
 		t.Errorf("mốc đã cắm phải quay lại trong Road:\n%s", r2)

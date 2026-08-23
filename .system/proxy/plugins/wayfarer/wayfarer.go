@@ -65,19 +65,14 @@ func (p *Wayfarer) Contribute(ctx context.Context, snap *request.Snapshot, sess 
 	// tool, và người cắm mốc đọc nó rồi nhả ra một lời gọi tool giả thay vì một cái mốc
 	// (§ loiterer.go, cùng phép đo).
 	system := soulText + "\n\n" +
-		base.Contract(soulName, marker,
+		base.Contract(
 			"the road is level; nothing measured is worth a milestone.",
-			"the line you are writing advises what to do — whether to rest or push on; that is the steering wheel, not a milestone",
+			// Vế duy nhất ở lại: nó nối cái soul thấy ("một con số đo được") với TÊN khối
+			// thật chở con số ấy — chỗ soul cố ý không nói, vì đổi tên một khối thì soul nói
+			// sai mà không ai báo.
 			"Every milestone stands on a number that appears in this turn's `<Road>` or a source "+
 				"named in `<Threshold>`. Never invent a number, an earlier turn, or a name the "+
-				"conversation does not name.",
-			// Tả HÌNH, không trích câu trọn vẹn: một câu mẫu đầy đủ trong prompt thì model
-			// nhỏ chép nguyên văn nó (template.agent.md § đệ nền, nếp 1).
-			"Shapes of a line — these are shapes, not sentences to reuse; copying a whole "+
-				"sample line verbatim is worse than silence: a return after a long gap → the gap "+
-				"in numbers, plus what the recorded threshold already says · a stuck point "+
-				"spanning sessions → count the sessions · an unusually long session → the number, "+
-				"and nothing after it. Two bare facts side by side, no exclamation, no comfort.")
+				"conversation does not name.")
 	user := localmodel.RenderUser(snap, "Recipient", snap.Agent,
 		localmodel.Block("Road", p.road(snap, sess)),
 		localmodel.Block("Threshold", p.readThreshold()))
@@ -91,7 +86,7 @@ func (p *Wayfarer) Contribute(ctx context.Context, snap *request.Snapshot, sess 
 	if content == "" {
 		return nil, nil
 	}
-	sess.Say(content) // để lượt sau soul thấy mình đã cắm gì mà không nhắc lại
+	sess.Say(soulName, content) // để lượt sau soul thấy mình đã cắm gì mà không nhắc lại
 	return plugin.One(&plugin.Contribution{Kind: plugin.KindMarker, Tag: soulName,
 		Text: base.Stamp(marker, soulName, content)}), nil
 }
@@ -126,7 +121,7 @@ func (p *Wayfarer) road(snap *request.Snapshot, sess *session.Session) string {
 		sb.WriteString(m + "\n")
 	}
 
-	said := sess.Said()
+	said := sess.Said(soulName)
 	if len(said) == 0 {
 		sb.WriteString("Mốc đã cắm trong phiên này: chưa có.\n")
 	} else {

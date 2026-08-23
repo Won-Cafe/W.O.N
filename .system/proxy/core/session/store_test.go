@@ -36,19 +36,19 @@ func TestTouchPromotesKey(t *testing.T) {
 
 	base, _ := Key("", "tzu", "hi", "")
 	s1 := st.Touch(base, "", "tzu", Reach{}, 1, now)
-	s1.Say("🛣️ Wayfarer: vắng 4 giờ.")
+	s1.Say("voice", "🛣️ vắng 4 giờ.")
 
 	refined, fb := Key("", "tzu", "hi", "reply")
 	s2 := st.Touch(refined, fb, "tzu", Reach{}, 1, now)
 	if s2 != s1 {
 		t.Fatal("session must migrate on key upgrade, not open new")
 	}
-	if s2.Key() != refined || len(s2.Said()) != 1 {
-		t.Fatalf("migrate missing state: key=%q said=%v", s2.Key(), s2.Said())
+	if s2.Key() != refined || len(s2.Said("voice")) != 1 {
+		t.Fatalf("migrate missing state: key=%q said=%v", s2.Key(), s2.Said("voice"))
 	}
 
 	s3 := st.Touch(base, "", "tzu", Reach{}, 1, now)
-	if s3 == s2 || len(s3.Said()) != 0 {
+	if s3 == s2 || len(s3.Said("voice")) != 0 {
 		t.Fatal("new conversation with same greeting must get a clean session")
 	}
 }
@@ -550,5 +550,31 @@ func TestNoHumanTurnKeepsCount(t *testing.T) {
 	st.Touch("k", "", "Tzu", Reach{}, 3, now.Add(time.Second))
 	if s := st.Touch("k", "", "Tzu", Reach{}, 0, now.Add(2*time.Second)); s.Turns() != 3 {
 		t.Errorf("số lượt bị xoá bởi một request không có lời người: %d", s.Turns())
+	}
+}
+
+// Sổ "đã nói" chia theo GIỌNG. Khoá là chuỗi bất kỳ — test dùng tên chung, vì cái đang
+// test là phép chia khoá, không phải một plugin nào: lõi không biết có những giọng nào.
+// Dồn một chỗ thì một giọng đọc được lời giọng khác và nhận làm lời mình, và giọng nào
+// bày trọn sổ ra cho model xem thì bày cả lời nó chưa từng nói.
+func TestSaidIsScopedPerVoice(t *testing.T) {
+	st := NewStore(filepath.Join(t.TempDir(), "state.json"))
+	s := st.Touch("k", "", "Tzu", Reach{}, 1, time.Now())
+
+	s.Say("voice-a", "dòng của giọng thứ nhất")
+	s.Say("voice-b", "dòng của giọng thứ hai")
+
+	if got := s.Said("voice-a"); len(got) != 1 || got[0] != "dòng của giọng thứ nhất" {
+		t.Errorf("giọng này chỉ được thấy lời của chính nó: %v", got)
+	}
+	if got := s.Said("voice-b"); len(got) != 1 || got[0] != "dòng của giọng thứ hai" {
+		t.Errorf("giọng này chỉ được thấy lời của chính nó: %v", got)
+	}
+	if got := s.Said("voice-c"); len(got) != 0 {
+		t.Errorf("giọng chưa nói gì phải thấy sổ trống: %v", got)
+	}
+	// Info giữ SỐ, không giữ nội dung (#5) — và số ấy là tổng của mọi giọng.
+	if n := s.info(time.Now()).Said; n != 2 {
+		t.Errorf("tổng số dòng đã nói: %d, muốn 2", n)
 	}
 }

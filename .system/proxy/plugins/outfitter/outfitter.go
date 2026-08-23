@@ -91,21 +91,9 @@ func (p *Outfitter) Contribute(ctx context.Context, snap *request.Snapshot, sess
 	// người giữ kho không thuộc Circle và không gọi ai. Đo được: có House thì nó gọi ra
 	// tên đệ không có trong đối thoại (§ loiterer.go, cùng phép đo).
 	system := soulText + "\n\n" + legend() + "\n" +
-		base.Contract(soulName, marker,
+		base.Contract(
 			"silence; the wearer picks their own tools this turn.",
-			"the line you are writing is about the work itself, not about the kit",
-			"Name only tools that appear in `<Kit>`; never invent one.",
-			"Point at a tool and where it went — never at the person.",
-			"Your line must point at something that actually appears in this turn's `<Kit>` or "+
-				"`<Reached>`. Never invent an earlier turn, and never name anyone the conversation "+
-				"does not name.",
-			// Tả HÌNH, không trích câu trọn vẹn: một câu mẫu đầy đủ trong prompt thì model
-			// nhỏ chép nguyên văn nó (template.agent.md § đệ nền, nếp 1).
-			"Shapes of a line — these are shapes, not sentences to reuse; copying a whole "+
-				"sample line verbatim is worse than silence: a tool that would end the groping "+
-				"→ name it and name what the hand has been doing instead · a tool doing more "+
-				"than its share → name the tool and where it went · one tool right and another "+
-				"premature → say which waits, and until when.")
+			"Name only tools that appear in `<Kit>`; never invent one.")
 
 	// "Wearer" là chữ của nghề — soul nhìn *người mang*. Outfitter KHÔNG nghỉ giữa
 	// vòng tool: đúng lúc đó tay người mang đang chạy nhiều lượt liền, và món nằm sai
