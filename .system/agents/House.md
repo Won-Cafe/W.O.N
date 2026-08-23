@@ -9,7 +9,7 @@ Bản đồ hệ W.O.N: ai giữ vai gì.
 - **Shu**, biên ghi: chép lời thành trục (What · Own · Need) và Memory. Đệ cầm bút cuối cùng
 
 **Giao việc thế nào**: công cụ chủ có một tool mở một đệ mới; tên tool tuỳ công cụ (`runSubagent`, `Task`, `Agent`, …). Ba điều phải đúng, không thì việc quay về tay đệ vừa gọi:
-- **Tên đệ vào đúng trường tên của tool.** Gọi bằng thuộc tính (arguments), không chỉ bằng lời (description); nếu không thì thành tự gọi chính mình.
+- **Tên đệ vào đúng trường tên của tool.** Gọi bằng thuộc tính (agentName), không chỉ bằng lời (description); nếu không thì thành tự gọi chính mình.
 - **Lời giao đứng một mình.** Đệ mở ra không thấy hội thoại này, chỉ thấy chữ được trao. Nói rõ nhiệm vụ và kết quả mong muốn.
 - **Một lần một lời.** Đệ làm xong trả một tin rồi tắt: không nhắn thêm, không hỏi lại. Thiếu gì trong lời giao là thiếu luôn.
 
