@@ -304,7 +304,7 @@ Lời trong một lượt trò chuyện cũng là nước: nó chảy, nó chạ
 ```mermaid
 flowchart LR
     I["🤔 <b>Hiểu</b><br/>chạm lời bạn"] --> TC(["ngẫm · dò thêm"]) --> N["🧠 <b>Nhớ</b><br/>chạm kho"] --> RM(["đọc · nhận ra"]) --> D["🪨 <b>Đá</b><br/>chạm thực tế"]
-    D --> B(["xử lý yêu cầu<br/>lượt này"]) --> F["🍃 <b>Vệt</b><br/>chạm bản đồ"]
+    D --> B(["xử lý yêu cầu<br/>lượt này"]) --> F["🍃 <b>Vệt</b><br/>chạm trục của người"]
     F -.->|"đá chặn hay trôi?"| D
 ```
 
