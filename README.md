@@ -25,17 +25,20 @@ W.O.N vẽ lại vòng đó. Nó chia bài toán thành ba trụ: thực tại b
 
 <div align="center">
 
- [![Static Badge](https://img.shields.io/badge/Video_Giải_Thích-Tiếng_Việt-blue?style=flat-square)](https://www.won.cafe/w-o-n/explainer-video) [![Static Badge](https://img.shields.io/badge/Explainer_Video-English-red?style=flat-square)](https://www.won.cafe/w-o-n/explainer-video)
+ [![Video giải thích — 7 phút — Bấm để xem](https://img.shields.io/badge/Video_giải_thích-7_phút_--_Bấm_để_xem-blue?style=for-the-badge)](https://www.won.cafe/w-o-n/explainer-video) 
+
+ [![Explainer video — 7 min — Click to watch](https://img.shields.io/badge/Explainer_video-7_min_--_Click_to_watch-red?style=for-the-badge)](https://www.won.cafe/w-o-n/explainer-video)
  
 </div>
 
 ---
-<details>
-<summary><b>Don't read Vietnamese? Start here</b></summary>
-<br/>
+### Don't read Vietnamese? Start here
 
-> [!IMPORTANT]
 > *W.O.N is written in Vietnamese, the author's native tongue, in a slow, dense register close to Hán-Việt. That register exists for a Vietnamese reader to slow down and sit with a sentence; it wasn't built as a friction device for anyone else, and the author isn't confident it carries into other languages at all. If you don't read Vietnamese, point your AI at this repository, not to translate it line by line but to read closely enough to actually understand the system, then explain that understanding back to you.*
+
+<details>
+<summary><b>Copy this prompt for your AI</b></summary>
+<br/>
 
 ```
 I don't read Vietnamese. Read through the W.O.N repository — the
@@ -48,9 +51,9 @@ would. Where a term resists translation, keep the Vietnamese word and
 gloss it. Start with README.md.
 ```
 
-*English introduction: [won.cafe](https://won.cafe)*
-
 </details>
+
+*English introduction: [won.cafe](https://won.cafe)*
 
 ---
 
